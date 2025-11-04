@@ -66,18 +66,22 @@ async function startApp(options = {}) {
  */
 function checkBrowserCompatibility() {
   // 检查必要的API
-  const requiredFeatures = [
+  const windowFeatures = [
     'localStorage',
     'requestAnimationFrame',
-    'addEventListener',
-    'querySelector'
+    'addEventListener'
   ];
 
-  for (const feature of requiredFeatures) {
+  for (const feature of windowFeatures) {
     if (!(feature in window)) {
-      console.error(`Missing required feature: ${feature}`);
+      console.error(`Missing required window feature: ${feature}`);
       return false;
     }
+  }
+
+  if (!('querySelector' in document)) {
+    console.error('Missing required document feature: querySelector');
+    return false;
   }
 
   // 检查Canvas支持
