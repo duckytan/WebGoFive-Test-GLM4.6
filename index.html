@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H5 五子棋 v2.0</title>
+    <meta name="description" content="基于Canvas的H5五子棋游戏，支持双人对战、人机对战和机机对战">
+    <meta name="keywords" content="五子棋,gomoku,游戏,HTML5,Canvas">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+    <!-- 应用主容器 -->
+    <div id="app" class="app-container">
+        <!-- 头部信息区 -->
+        <header class="game-header">
+            <h1 class="game-title">H5 五子棋</h1>
+            <div class="game-info">
+                <span id="current-mode" class="mode-display">模式: PvP</span>
+                <span id="current-player" class="player-display">当前: 黑棋</span>
+            </div>
+        </header>
+
+        <!-- 游戏主区域 -->
+        <main class="game-main">
+            <!-- 左侧控制面板 -->
+            <aside class="control-panel">
+                <div class="mode-selector">
+                    <h3>游戏模式</h3>
+                    <div class="mode-buttons">
+                        <button id="mode-pvp" class="mode-btn active" data-mode="PvP">双人对战</button>
+                        <button id="mode-pve" class="mode-btn" data-mode="PvE">人机对战</button>
+                        <button id="mode-eve" class="mode-btn" data-mode="EvE">机机对战</button>
+                    </div>
+                </div>
+
+                <div class="ai-settings" id="ai-settings" style="display: none;">
+                    <h3>AI 设置</h3>
+                    <div class="difficulty-selector">
+                        <label>黑棋 AI:</label>
+                        <select id="black-ai-level">
+                            <option value="BEGINNER">新手</option>
+                            <option value="NORMAL" selected>正常</option>
+                            <option value="HARD">困难</option>
+                            <option value="HELL">地狱</option>
+                        </select>
+                    </div>
+                    <div class="difficulty-selector">
+                        <label>白棋 AI:</label>
+                        <select id="white-ai-level">
+                            <option value="BEGINNER">新手</option>
+                            <option value="NORMAL" selected>正常</option>
+                            <option value="HARD">困难</option>
+                            <option value="HELL">地狱</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="game-controls">
+                    <h3>游戏控制</h3>
+                    <button id="new-game" class="control-btn primary">新游戏</button>
+                    <button id="undo-move" class="control-btn" disabled>悔棋</button>
+                    <button id="hint-move" class="control-btn">提示</button>
+                    <button id="save-game" class="control-btn">保存</button>
+                    <button id="load-game" class="control-btn">加载</button>
+                </div>
+
+                <div class="replay-controls" id="replay-controls" style="display: none;">
+                    <h3>回放控制</h3>
+                    <div class="replay-buttons">
+                        <button id="replay-play" class="replay-btn">▶</button>
+                        <button id="replay-pause" class="replay-btn">⏸</button>
+                        <button id="replay-prev" class="replay-btn">⏮</button>
+                        <button id="replay-next" class="replay-btn">⏭</button>
+                    </div>
+                    <div class="replay-speed">
+                        <label>播放速度:</label>
+                        <input type="range" id="replay-speed" min="0.5" max="3" step="0.5" value="1">
+                        <span id="speed-display">1x</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 中间游戏画布区 -->
+            <section class="game-board-container">
+                <canvas id="game-canvas" width="600" height="600" class="game-canvas">
+                    您的浏览器不支持 Canvas
+                </canvas>
+                <div class="board-overlay" id="board-overlay">
+                    <!-- 游戏状态提示、禁手高亮等覆盖层内容 -->
+                </div>
+            </section>
+
+            <!-- 右侧信息面板 -->
+            <aside class="info-panel">
+                <div class="move-history">
+                    <h3>落子记录</h3>
+                    <div id="move-list" class="move-list">
+                        <!-- 动态生成落子记录 -->
+                    </div>
+                </div>
+
+                <div class="game-stats">
+                    <h3>游戏统计</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">步数:</span>
+                            <span id="move-count" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">用时:</span>
+                            <span id="game-time" class="stat-value">00:00</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">状态:</span>
+                            <span id="game-status" class="stat-value">准备</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings">
+                    <h3>设置</h3>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="forbidden-rules" checked>
+                            启用禁手规则
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="show-coordinates" checked>
+                            显示坐标
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="sound-effects" checked>
+                            音效
+                        </label>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- 底部信息 -->
+        <footer class="game-footer">
+            <div class="footer-info">
+                <span id="version-info">v2.0.0</span>
+                <span>|</span>
+                <a href="#" id="help-link">帮助</a>
+                <span>|</span>
+                <a href="#" id="about-link">关于</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 模态对话框 -->
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 id="modal-title">标题</h3>
+                <button id="modal-close" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- 动态内容 -->
+            </div>
+            <div class="modal-footer" id="modal-footer">
+                <!-- 动态按钮 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 模块加载 -->
+    <script src="js/utils/EventBus.js"></script>
+    <script src="js/utils/Logger.js"></script>
+    <script src="js/core/GameState.js"></script>
+    <script src="js/core/RuleEngine.js"></script>
+    <script src="js/core/AIEngine.js"></script>
+    <script src="js/ui/CanvasRenderer.js"></script>
+    <script src="js/ui/HudPanel.js"></script>
+    <script src="js/services/SaveLoadService.js"></script>
+    <script src="js/services/ReplayService.js"></script>
+    <script src="js/ModeManager.js"></script>
+    <script src="js/GameController.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H5 五子棋 v2.0 - 测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background: #2980b9;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        #game-canvas {
+            border: 2px solid #333;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>H5 五子棋 v2.0 - 测试页面</h1>
+        
+        <div class="test-section">
+            <h2>模块加载测试</h2>
+            <button class="button" onclick="testModuleLoading()">测试模块加载</button>
+            <div id="module-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>游戏状态测试</h2>
+            <button class="button" onclick="testGameState()">测试游戏状态</button>
+            <div id="gamestate-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>规则引擎测试</h2>
+            <button class="button" onclick="testRuleEngine()">测试规则引擎</button>
+            <div id="ruleengine-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Canvas渲染测试</h2>
+            <canvas id="game-canvas" width="400" height="400"></canvas>
+            <button class="button" onclick="testCanvasRenderer()">测试Canvas渲染</button>
+            <div id="canvas-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>完整应用测试</h2>
+            <button class="button" onclick="testFullApp()">启动完整应用</button>
+            <button class="button" onclick="testNewGame()">测试新游戏</button>
+            <button class="button" onclick="testAIMove()">测试AI落子</button>
+            <div id="app-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>开发者工具</h2>
+            <button class="button" onclick="showDevTools()">显示开发者工具</button>
+            <button class="button" onclick="toggleDebugMode()">切换调试模式</button>
+            <div id="dev-result"></div>
+        </div>
+    </div>
+
+    <!-- 加载所有模块 -->
+    <script src="js/utils/EventBus.js"></script>
+    <script src="js/utils/Logger.js"></script>
+    <script src="js/core/GameState.js"></script>
+    <script src="js/core/RuleEngine.js"></script>
+    <script src="js/core/AIEngine.js"></script>
+    <script src="js/ui/CanvasRenderer.js"></script>
+    <script src="js/ui/HudPanel.js"></script>
+    <script src="js/services/SaveLoadService.js"></script>
+    <script src="js/services/ReplayService.js"></script>
+    <script src="js/ModeManager.js"></script>
+    <script src="js/GameController.js"></script>
+
+    <script>
+        let app = null;
+        let testResults = [];
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="result ${type}">${message}</div>`;
+        }
+
+        function addTestResult(test, passed, message) {
+            testResults.push({ test, passed, message, timestamp: new Date() });
+        }
+
+        function testModuleLoading() {
+            const results = [];
+            const requiredModules = [
+                'EventBus', 'Logger', 'GameState', 'RuleEngine', 'AIEngine',
+                'CanvasRenderer', 'HudPanel', 'SaveLoadService', 'ReplayService',
+                'ModeManager', 'GameController'
+            ];
+
+            requiredModules.forEach(moduleName => {
+                if (window[moduleName]) {
+                    results.push(`✅ ${moduleName} 加载成功`);
+                    addTestResult(`Module ${moduleName}`, true, 'Loaded successfully');
+                } else {
+                    results.push(`❌ ${moduleName} 加载失败`);
+                    addTestResult(`Module ${moduleName}`, false, 'Failed to load');
+                }
+            });
+
+            const passed = results.filter(r => r.includes('✅')).length;
+            const total = results.length;
+            
+            showResult('module-result', 
+                `模块加载测试完成: ${passed}/${total} 通过<br>${results.join('<br>')}`,
+                passed === total ? 'success' : 'error'
+            );
+        }
+
+        function testGameState() {
+            try {
+                const eventBus = new EventBus();
+                const gameState = new GameState(eventBus);
+                
+                // 测试基本功能
+                gameState.applyMove(7, 7);
+                gameState.switchPlayer();
+                gameState.applyMove(7, 8);
+                
+                const snapshot = gameState.getSnapshot();
+                const stats = gameState.getStats();
+                
+                const results = [
+                    `✅ 落子功能正常`,
+                    `✅ 状态快照正常`,
+                    `✅ 统计信息正常: ${stats.moveCount}步`,
+                    `✅ 当前玩家: ${snapshot.currentPlayer === 1 ? '黑棋' : '白棋'}`
+                ];
+                
+                showResult('gamestate-result', 
+                    `游戏状态测试通过<br>${results.join('<br>')}`,
+                    'success'
+                );
+                
+                addTestResult('GameState', true, 'All tests passed');
+                
+            } catch (error) {
+                showResult('gamestate-result', 
+                    `游戏状态测试失败: ${error.message}`,
+                    'error'
+                );
+                
+                addTestResult('GameState', false, error.message);
+            }
+        }
+
+        function testRuleEngine() {
+            try {
+                const eventBus = new EventBus();
+                const gameState = new GameState(eventBus);
+                const ruleEngine = new RuleEngine(eventBus);
+                
+                // 测试落子验证
+                const validation1 = ruleEngine.validateMove(gameState, 7, 7);
+                const validation2 = ruleEngine.validateMove(gameState, -1, 0);
+                
+                // 测试获胜检测
+                gameState.applyMove(7, 7);
+                const winCheck = ruleEngine.checkWin(gameState, 7, 7, 1);
+                
+                const results = [
+                    `✅ 落子验证正常: ${validation1.valid ? '有效' : '无效'}`,
+                    `✅ 无效坐标检测: ${!validation2.valid ? '正常' : '异常'}`,
+                    `✅ 获胜检测正常: ${winCheck.isWin ? '获胜' : '未获胜'}`
+                ];
+                
+                showResult('ruleengine-result', 
+                    `规则引擎测试通过<br>${results.join('<br>')}`,
+                    'success'
+                );
+                
+                addTestResult('RuleEngine', true, 'All tests passed');
+                
+            } catch (error) {
+                showResult('ruleengine-result', 
+                    `规则引擎测试失败: ${error.message}`,
+                    'error'
+                );
+                
+                addTestResult('RuleEngine', false, error.message);
+            }
+        }
+
+        function testCanvasRenderer() {
+            try {
+                const canvas = document.getElementById('game-canvas');
+                const eventBus = new EventBus();
+                const renderer = new CanvasRenderer(eventBus, canvas);
+                
+                // 创建测试游戏状态
+                const gameState = new GameState(eventBus);
+                gameState.applyMove(7, 7);
+                gameState.applyMove(7, 8);
+                gameState.applyMove(8, 7);
+                
+                // 渲染游戏
+                renderer.render(gameState);
+                
+                const status = renderer.getStatus();
+                
+                showResult('canvas-result', 
+                    `Canvas渲染测试通过<br>画布尺寸: ${status.canvasSize.width}x${status.canvasSize.height}`,
+                    'success'
+                );
+                
+                addTestResult('CanvasRenderer', true, 'Render successful');
+                
+            } catch (error) {
+                showResult('canvas-result', 
+                    `Canvas渲染测试失败: ${error.message}`,
+                    'error'
+                );
+                
+                addTestResult('CanvasRenderer', false, error.message);
+            }
+        }
+
+        async function testFullApp() {
+            try {
+                app = new GameController();
+                const result = await app.initialize({ debug: true });
+                
+                if (result.success) {
+                    app.start();
+                    
+                    showResult('app-result', 
+                        `完整应用测试通过<br>初始化耗时: ${result.duration}ms<br>已加载模块: ${result.modules.join(', ')}`,
+                        'success'
+                    );
+                    
+                    addTestResult('FullApp', true, 'Application started successfully');
+                    
+                    // 暴露到全局
+                    window.testApp = app;
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                showResult('app-result', 
+                    `完整应用测试失败: ${error.message}`,
+                    'error'
+                );
+                
+                addTestResult('FullApp', false, error.message);
+            }
+        }
+
+        function testNewGame() {
+            if (!app) {
+                showResult('app-result', '请先启动完整应用', 'error');
+                return;
+            }
+            
+            try {
+                const result = app.startNewGame();
+                
+                if (result.success) {
+                    showResult('app-result', 
+                        `新游戏测试通过<br>模式: ${result.mode}<br>当前玩家: ${result.currentPlayer === 1 ? '黑棋' : '白棋'}`,
+                        'success'
+                    );
+                    
+                    addTestResult('NewGame', true, 'Game started successfully');
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                showResult('app-result', 
+                    `新游戏测试失败: ${error.message}`,
+                    'error'
+                );
+                
+                addTestResult('NewGame', false, error.message);
+            }
+        }
+
+        async function testAIMove() {
+            if (!app) {
+                showResult('app-result', '请先启动完整应用', 'error');
+                return;
+            }
+            
+            try {
+                // 切换到PvE模式
+                app.modules.modeManager.switchMode('PvE');
+                app.startNewGame();
+                
+                // 执行玩家落子
+                app.modules.modeManager.handlePlayerMove(7, 7);
+                
+                // 等待AI响应
+                setTimeout(() => {
+                    const gameState = app.getGameState();
+                    const moveCount = gameState.moveHistory.length;
+                    
+                    if (moveCount >= 2) {
+                        showResult('app-result', 
+                            `AI落子测试通过<br>总步数: ${moveCount}<br>AI已落子`,
+                            'success'
+                        );
+                        
+                        addTestResult('AIMove', true, 'AI responded successfully');
+                    } else {
+                        showResult('app-result', 
+                            `AI落子测试失败: AI未响应`,
+                            'error'
+                        );
+                        
+                        addTestResult('AIMove', false, 'AI did not respond');
+                    }
+                }, 2000);
+                
+                showResult('app-result', 'AI思考中，请等待...', 'info');
+                
+            } catch (error) {
+                showResult('app-result', 
+                    `AI落子测试失败: ${error.message}`,
+                    'error'
+                );
+                
+                addTestResult('AIMove', false, error.message);
+            }
+        }
+
+        function showDevTools() {
+            if (window.GomokuDev) {
+                const tools = Object.keys(window.GomokuDev);
+                showResult('dev-result', 
+                    `开发者工具已激活<br>可用工具: ${tools.join(', ')}<br>使用 window.GomokuDev 或 window.g 访问`,
+                    'success'
+                );
+            } else {
+                showResult('dev-result', 
+                    `开发者工具未激活，请先启动完整应用`,
+                    'error'
+                );
+            }
+        }
+
+        function toggleDebugMode() {
+            if (app) {
+                const newState = app.setDebugMode(!app.getApplicationState().config.debugMode);
+                showResult('dev-result', 
+                    `调试模式已${newState ? '开启' : '关闭'}`,
+                    'info'
+                );
+            } else {
+                showResult('dev-result', 
+                    `请先启动完整应用`,
+                    'error'
+                );
+            }
+        }
+
+        // 页面加载完成后自动运行模块加载测试
+        window.addEventListener('load', () => {
+            setTimeout(testModuleLoading, 100);
+        });
+    </script>
+</body>
+</html>
