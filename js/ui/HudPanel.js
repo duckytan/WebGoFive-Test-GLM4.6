@@ -545,8 +545,8 @@ class HudPanel {
       this._updateMoveList([]);
     });
 
-    this.eventBus.on('move:applied', () => {
-      this._updateMoveCount(this.state.gameTime); // 这里需要从gameState获取
+    this.eventBus.on('move:applied', (move) => {
+      this._updateMoveCount(move.step || move.moveNumber || 0);
     });
 
     this.eventBus.on('player:switched', (player) => {

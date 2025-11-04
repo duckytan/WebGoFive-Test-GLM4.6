@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Module Loading</title>
+</head>
+<body>
+    <div id="output"></div>
+    
+    <script src="js/utils/EventBus.js"></script>
+    <script src="js/utils/Logger.js"></script>
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message) {
+            output.innerHTML += message + '<br>';
+            console.log(message);
+        }
+        
+        log('Testing module loading...');
+        
+        // Test if Logger is available
+        if (typeof Logger !== 'undefined') {
+            log('✓ Logger class is available');
+        } else {
+            log('✗ Logger class is NOT available');
+        }
+        
+        // Test if logger instance is available
+        if (typeof logger !== 'undefined') {
+            log('✓ logger instance is available');
+            
+            // Test if createModuleLogger works
+            try {
+                const testLogger = logger.createModuleLogger('Test');
+                log('✓ createModuleLogger works');
+            } catch (e) {
+                log('✗ createModuleLogger failed: ' + e.message);
+            }
+        } else {
+            log('✗ logger instance is NOT available');
+        }
+        
+        // Test if EventBus is available
+        if (typeof EventBus !== 'undefined') {
+            log('✓ EventBus class is available');
+        } else {
+            log('✗ EventBus class is NOT available');
+        }
+        
+        // Now test loading other modules
+        log('Loading other modules...');
+    </script>
+    
+    <script src="js/core/GameState.js"></script>
+    <script src="js/core/RuleEngine.js"></script>
+    <script src="js/core/AIEngine.js"></script>
+    <script src="js/ui/CanvasRenderer.js"></script>
+    <script src="js/ui/HudPanel.js"></script>
+    <script src="js/services/SaveLoadService.js"></script>
+    <script src="js/services/ReplayService.js"></script>
+    <script src="js/ModeManager.js"></script>
+    <script src="js/GameController.js"></script>
+    
+    <script>
+        log('All modules loaded. Testing GameController...');
+        
+        // Test if GameController is available
+        if (typeof GameController !== 'undefined') {
+            log('✓ GameController class is available');
+            
+            try {
+                const testApp = new GameController();
+                log('✓ GameController instantiated successfully');
+            } catch (e) {
+                log('✗ GameController instantiation failed: ' + e.message);
+                log('Stack: ' + e.stack);
+            }
+        } else {
+            log('✗ GameController class is NOT available');
+        }
+    </script>
+</body>
+</html>

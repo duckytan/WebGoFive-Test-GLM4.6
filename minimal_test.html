@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minimal Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px; margin: 5px; font-size: 16px; }
+        #log { background: #f0f0f0; padding: 10px; margin-top: 10px; height: 300px; overflow-y: scroll; }
+    </style>
+</head>
+<body>
+    <h1>Minimal Game Test</h1>
+    <button id="new-game-btn">New Game</button>
+    <button id="test-btn">Test Events</button>
+    <div id="current-mode">Mode: Not set</div>
+    <div id="game-status">Status: Not started</div>
+    <div id="log"></div>
+    
+    <script src="js/utils/EventBus.js"></script>
+    <script src="js/utils/Logger.js"></script>
+    <script src="js/core/GameState.js"></script>
+    <script src="js/core/RuleEngine.js"></script>
+    <script src="js/core/AIEngine.js"></script>
+    <script src="js/ui/CanvasRenderer.js"></script>
+    <script src="js/ui/HudPanel.js"></script>
+    <script src="js/services/SaveLoadService.js"></script>
+    <script src="js/services/ReplayService.js"></script>
+    <script src="js/ModeManager.js"></script>
+    <script src="js/GameController.js"></script>
+    
+    <script>
+        const logDiv = document.getElementById('log');
+        
+        function log(message) {
+            logDiv.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            console.log(message);
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('DOM Loaded');
+            
+            try {
+                // Create event bus
+                const eventBus = new EventBus();
+                log('EventBus created');
+                
+                // Create game state
+                const gameState = new GameState(eventBus);
+                log('GameState created');
+                
+                // Create rule engine
+                const ruleEngine = new RuleEngine(eventBus);
+                log('RuleEngine created');
+                
+                // Create mode manager
+                const modeManager = new ModeManager(eventBus);
+                modeManager.setComponents({
+                    gameState: gameState,
+                    ruleEngine: ruleEngine,
+                    aiEngine: null
+                });
+                log('ModeManager created and configured');
+                
+                // Listen to events
+                eventBus.on('ui:newGameRequested', () => {
+                    log('New game requested event received!');
+                    const result = modeManager.startNewGame();
+                    log('New game result: ' + JSON.stringify(result));
+                    document.getElementById('game-status').textContent = 'Status: ' + (result.success ? 'Started' : 'Failed');
+                });
+                
+                eventBus.on('mode:changed', (mode) => {
+                    log('Mode changed to: ' + mode);
+                    document.getElementById('current-mode').textContent = 'Mode: ' + mode;
+                });
+                
+                eventBus.on('game:started', (data) => {
+                    log('Game started event: ' + JSON.stringify(data));
+                });
+                
+                // Bind button click
+                document.getElementById('new-game-btn').addEventListener('click', () => {
+                    log('New game button clicked!');
+                    eventBus.emit('ui:newGameRequested');
+                });
+                
+                document.getElementById('test-btn').addEventListener('click', () => {
+                    log('Test button clicked!');
+                    eventBus.emit('ui:modeChanged', 'PvP');
+                });
+                
+                log('All setup complete. Try clicking buttons!');
+                
+            } catch (e) {
+                log('ERROR: ' + e.message);
+                log('Stack: ' + e.stack);
+            }
+        });
+    </script>
+</body>
+</html>
