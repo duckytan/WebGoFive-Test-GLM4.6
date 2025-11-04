@@ -10,7 +10,18 @@
 
 class GameController {
   constructor() {
-    this.logger = logger.createModuleLogger('GameController');
+    // Safety check for logger
+    if (typeof logger === 'undefined') {
+      console.error('Logger not available when creating GameController');
+      this.logger = {
+        info: (msg, data) => console.log('[GameController]', msg, data),
+        error: (msg, data) => console.error('[GameController]', msg, data),
+        warn: (msg, data) => console.warn('[GameController]', msg, data),
+        performance: (op, start) => console.log('[GameController]', `Performance: ${op} took ${Date.now() - start}ms`)
+      };
+    } else {
+      this.logger = logger.createModuleLogger('GameController');
+    }
 
     // 模块实例
     this.modules = {

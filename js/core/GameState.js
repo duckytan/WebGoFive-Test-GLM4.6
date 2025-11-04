@@ -16,7 +16,19 @@ class GameState {
     }
 
     this.eventBus = eventBus;
-    this.logger = logger.createModuleLogger('GameState');
+    
+    // Safety check for logger
+    if (typeof logger === 'undefined') {
+      console.error('Logger not available when creating GameState');
+      this.logger = {
+        info: (msg, data) => console.log('[GameState]', msg, data),
+        error: (msg, data) => console.error('[GameState]', msg, data),
+        warn: (msg, data) => console.warn('[GameState]', msg, data),
+        performance: (op, start) => console.log('[GameState]', `Performance: ${op} took ${Date.now() - start}ms`)
+      };
+    } else {
+      this.logger = logger.createModuleLogger('GameState');
+    }
 
     // 基础配置
     this.boardSize = 15;

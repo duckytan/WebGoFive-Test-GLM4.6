@@ -21,7 +21,18 @@ class CanvasRenderer {
     this.eventBus = eventBus;
     this.canvas = canvasElement;
     this.ctx = canvasElement.getContext('2d');
-    this.logger = logger.createModuleLogger('CanvasRenderer');
+    
+    // Safety check for logger
+    if (typeof logger === 'undefined') {
+      console.error('Logger not available when creating CanvasRenderer');
+      this.logger = {
+        info: (msg, data) => console.log('[CanvasRenderer]', msg, data),
+        error: (msg, data) => console.error('[CanvasRenderer]', msg, data),
+        warn: (msg, data) => console.warn('[CanvasRenderer]', msg, data)
+      };
+    } else {
+      this.logger = logger.createModuleLogger('CanvasRenderer');
+    }
 
     // 渲染配置
     this.config = {

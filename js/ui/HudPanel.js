@@ -16,7 +16,18 @@ class HudPanel {
     }
 
     this.eventBus = eventBus;
-    this.logger = logger.createModuleLogger('HudPanel');
+    
+    // Safety check for logger
+    if (typeof logger === 'undefined') {
+      console.error('Logger not available when creating HudPanel');
+      this.logger = {
+        info: (msg, data) => console.log('[HudPanel]', msg, data),
+        error: (msg, data) => console.error('[HudPanel]', msg, data),
+        warn: (msg, data) => console.warn('[HudPanel]', msg, data)
+      };
+    } else {
+      this.logger = logger.createModuleLogger('HudPanel');
+    }
 
     // UI元素引用
     this.elements = {
@@ -538,7 +549,7 @@ class HudPanel {
     });
 
     // 游戏事件监听
-    this.eventBus.on('state:reset', () => {
+    this.eventBus.on('state:reset', (snapshot) => {
       this._resetGameTime();
       this._updateGameStatus('ready');
       this._updateMoveCount(0);
@@ -553,7 +564,7 @@ class HudPanel {
       this._updatePlayerDisplay(player);
     });
 
-    this.eventBus.on('game:statusChanged', (status) => {
+    this.eventBus.on('game:statusChanged', (status, oldStatus) => {
       this._updateGameStatus(status);
 
       if (status === 'playing') {
