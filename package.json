@@ -1,0 +1,36 @@
+{
+  "name": "h5-gomoku-v2",
+  "version": "2.0.0",
+  "description": "H5 五子棋游戏重构版 - 纯前端Canvas实现",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx http-server -p 8080 -c-1 --cors",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint js/ --ext .js",
+    "lint:fix": "eslint js/ --ext .js --fix",
+    "format": "prettier --write js/**/*.js test/**/*.js",
+    "build": "echo 'No build process needed for vanilla JS project'"
+  },
+  "keywords": [
+    "gomoku",
+    "五子棋",
+    "game",
+    "canvas",
+    "javascript",
+    "h5"
+  ],
+  "author": "Gomoku Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "vitest": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "jsdom": "^23.0.0"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
