@@ -16,7 +16,18 @@ class ModeManager {
     }
 
     this.eventBus = eventBus;
-    this.logger = logger.createModuleLogger('ModeManager');
+    
+    // Safety check for logger
+    if (typeof logger === 'undefined') {
+      console.error('Logger not available when creating ModeManager');
+      this.logger = {
+        info: (msg, data) => console.log('[ModeManager]', msg, data),
+        error: (msg, data) => console.error('[ModeManager]', msg, data),
+        warn: (msg, data) => console.warn('[ModeManager]', msg, data)
+      };
+    } else {
+      this.logger = logger.createModuleLogger('ModeManager');
+    }
 
     // 游戏模式
     this.MODES = {
